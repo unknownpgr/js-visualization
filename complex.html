@@ -1,0 +1,130 @@
+<html>
+
+<head>
+    <script src="vecalc.js"></script>
+    <script src="3dlib.js"></script>
+    <script src="graph.js"></script>
+</head>
+
+<body>
+    <div>
+        수학에서 모든 대상은 다음과 같이 추상화할 수 있다.
+        1. 수 - 대상 - 벡터, 복소수
+        2. 작용 - 대상 - 입력을 받아 출력을 반환 - 예컨대 연산, 함수.
+        3. 작용의 작용 - 미적분과 같은 것
+        4. 더 있나? 집합?
+
+        자연수,실수
+        복소수
+        벡터
+        사칙연산
+        미적분
+        함수
+        항
+        등식
+        행렬
+        집합
+        수열
+        시그마,파이
+        미지수
+
+        푸리에 변환을 해 볼까?
+        푸리에 변환은 F(x)=integral f(t)exp(-2pisit)
+        이때 exp(ix) = isinx+cosx임을 알고 있다.
+        따라서 변환은 integral f(t)(isin(-2pist)+cos(-2pist))
+        삼각함수의 특성을 이용하여
+        = integral f(t)(cos(2pist)-isin(2pist))
+        이때 f(t)는 이산 함수로 가정하고 다룰 것이므로, 이산 푸리에 변환을 적용하면
+        = sum f(t)(cos(2pist)-isin(2pist)) from t = 0 to t = n-1
+        그렇다면 주파수 대역을 얼마만큼 할 건지 정해야 하네.
+    </div>
+    <div id="logDiv"></div>
+    <canvas id="cnv" width="500" height="500"></canvas>
+    <script>
+        const pi = Math.PI
+
+        const log = log => logDiv.innerHTML += log + '<br>'
+        const cls = () => logDiv.innerHTML = ''
+
+        const cpxd = (a, b) => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + b[0] * a[1]]
+
+        function DFT(f, w) {
+            var c = 2 * pi * w / f.length
+            var cpx = [0, 0]
+            f.forEach((x, i) => {
+                cpx = add(cpx, cpxd(x, [Math.cos(c * i), -Math.sin(c * i)]))
+            });
+            return div(cpx, f.length)
+        }
+
+        function FS(f, w) {
+            var c = 2 * pi * w / f.length
+            var cpx = [0, 0]
+            f.forEach((x, i) => {
+                cpx = add(cpx, cpxd(x, [Math.cos(c * i), 0]))
+            });
+            f.forEach((x, i) => {
+                cpx = add(cpx, cpxd(x, [Math.cos(c * i), 0]))
+            });
+            return div(cpx, f.length)
+        }
+
+        var graph = getGraph3D(cnv)
+        var t = 0
+        setInterval(() => {
+            var target = [3, 0, 1]
+            var dir = [Math.sin(t / 100 + pi / 2) * 5, Math.cos(t / 100 + pi / 2) * 5, -1]
+            var camera = sub(target, dir)
+            graph.setCameraPos(camera)
+            graph.setCameraDir(dir)
+            graph.clear()
+            t++
+            var f = t / 1000
+            cls()
+
+            cls()
+            log(f)
+
+            var origin = []
+            var resolution1 = 0.01
+            for (var i = 0; i < 1; i += resolution1) {
+                origin.push([Math.sin(2 * pi * i * f), 0])
+            }
+            log(origin.length)
+
+            var encoded = []
+            for (var w = 0; w < origin.length; w++) {
+                var y = DFT(origin, w)
+                encoded.push(y)
+            }
+
+            var decoded = []
+            var resolution3 = 0.01
+            for (var i = 0; i < 1; i += resolution3) {
+                var x = FS(encoded, i * 2 * pi)
+                decoded.push([x[0] * 100, x[1] * 100])
+            }
+
+            graph.lines = [
+                origin.map((x, i) => [i / origin.length, x[1], x[0]]),
+                // encoded.map((x, i) => [i, x[1] * 0, len(x)]),
+                decoded.map((x, i) => [i / 10, x[1], x[0]]),
+                [[0, 0, 0], [5, 0, 0]], //X Axis
+                [[0, 0, 0], [0, 0, 1]], //Z Axis
+                //Rulers
+                [[1, 0, 0], [1, 0, -1]],
+                [[2, 0, 0], [2, 0, -1]],
+                [[3, 0, 0], [3, 0, -1]],
+                [[4, 0, 0], [4, 0, -1]],
+
+                //Frequency
+                [[f, 0, 0], [f, 0, -2]]
+            ]
+
+            graph.render()
+        }, 10);
+
+    </script>
+</body>
+
+</html>

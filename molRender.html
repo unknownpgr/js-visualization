@@ -1,0 +1,169 @@
+<html>
+
+<head>
+    <title>Test Page</title>
+    <script src="./vecalc.js"></script>
+    <script src="./3dlib.js"></script>
+    <script src="./graph.js"></script>
+</head>
+
+<body>
+    <div id="file_data" hidden>
+        forcefield mm+
+        sys 0 0 1
+        view 40 0.18715 55 15 0.2458722 -0.8921838 0.3788864 0.9629003 0.1799647 -0.2010862 0.1112197 0.4142714
+        0.9033324
+        0.015389 0.70613 -54.818
+        seed -1110
+        mol 1
+        atom 1 - C C3 - 0 -0.4118924 1.453656 0.04617746 3 2 s 6 d 7 s
+        atom 2 - C C3 - 0 -0.0854893 2.755968 -0.05725819 3 1 s 3 d 11 s
+        atom 3 - C C3 - 0 1.188929 3.119224 -0.2632139 3 2 d 4 s 12 s
+        atom 4 - C C3 - 0 2.135197 2.175986 -0.358493 3 3 s 5 d 13 s
+        atom 5 - C C3 - 0 1.797559 0.8823565 -0.2530545 3 4 d 6 s 14 s
+        atom 6 - C C3 - 0 0.5240566 0.485641 -0.06136338 3 5 s 1 d 15 s
+        atom 7 - C CO - 0 -1.715772 1.115117 0.2559347 3 1 s 8 d 9 s
+        atom 8 - O O1 - 0 -2.578407 1.957907 0.3590071 1 7 d
+        atom 9 - O O2 - 0 -2.136205 -0.1485903 0.3661465 2 7 s 10 s
+        atom 10 - H HX - 0 -3.096507 -0.1046619 0.509635 1 9 s
+        atom 11 - H H - 0 -0.8360627 3.56162 0.02231964 1 2 s
+        atom 12 - H H - 0 1.459908 4.186366 -0.3459801 1 3 s
+        atom 13 - H H - 0 3.189173 2.465053 -0.5151901 1 4 s
+        atom 14 - H H - 0 2.605222 0.133896 -0.3160437 1 5 s
+        atom 15 - O O2 - 0 0.2018775 -0.8370035 0.05286648 2 6 s 16 s
+        atom 16 - C CO - 0 0.7451262 -1.845114 -0.6509104 3 15 s 17 s 18 d
+        atom 17 - C C4 - 0 0.3329852 -3.166735 -0.0419274 4 16 s 19 s 20 s 21 s
+        atom 18 - O O1 - 0 1.43036 -1.711501 -1.637567 1 16 d
+        atom 19 - H H - 0 -0.7762993 -3.269076 -0.05004384 1 17 s
+        atom 20 - H H - 0 0.7643865 -4.01571 -0.619613 1 17 s
+        atom 21 - H H - 0 0.6981787 -3.240015 1.00791 1 17 s
+        endmol 1
+    </div>
+    <div> <input type="file" onchange="fileUp(event)" id="fileInput"></div>
+    <div> <canvas width="1280" height="800" id="canvasTag" onmousemove="mouseMove(event)"
+            onmousewheel="mouseScroll(event)"></canvas></div>
+    <div><textarea id="logTag" cols="100" rows="10"></textarea> </div>
+
+    <script>
+        //Rendering part
+        const round = (x, d = 6) => (x + '').substr(0, d + 2)// Math.round(x * Math.pow(10, d)) / Math.pow(10, d)
+
+        var axis = [
+            [origin, [0, 0, 5]],
+            [origin, [0, 5, 0]],
+            [origin, [5, 0, 0]]]
+
+        //Get points
+
+
+        var center = [0, 0, 0]
+
+        var graph = getGraph3D(canvasTag)
+        // graph.dots = points
+
+
+        const width = canvasTag.width
+        const height = canvasTag.height
+
+        var a = [0, 0, 0]
+        var d = 6;
+
+        function mouseMove(e) {
+            var t = e.clientX / width * Math.PI * 2
+            var h = e.clientY / height * Math.PI * .99 + Math.PI / 2
+
+            var x = Math.cos(h) * Math.cos(t)
+            var y = Math.cos(h) * Math.sin(t)
+            var z = Math.sin(h)
+
+            a = unt([x, y, z])
+            render()
+        }
+
+        function mouseScroll(e) {
+            d += e.deltaY / 100
+            if (d < 5) d = 5
+            if (d > 30) d = 30
+            render()
+        }
+
+        function render() {
+            var pos = add(mul(a, d), center)
+            var dir = mul(a, -20)
+
+            graph.setCameraPos(pos)
+            graph.setCameraDir(dir)
+
+            graph.clear()
+            graph.render()
+        }
+
+        function fileUp(event) {
+            const reader = new FileReader()
+            reader.onload = event => start(event.target.result) // desired file content
+            reader.onerror = error => reject(error)
+            reader.readAsText(fileInput.files[0]) // you could also read images and other binaries
+        }
+
+        function start(text) {
+            console.log(text)
+            text = text.split('mol 1')[1].split('end')[0]
+            // return;
+            var str = text
+            var list = str.split('atom ')
+                .filter(x => x.length > 5)
+                .map(x => x.trim())
+                .map(x => {
+                    var ps = x.split(' ')
+                    var cc = ps[9]
+                    var ccl = []
+                    for (var i = 0; i < cc * 2; i += 2) ccl.push({ idx: ps[10 + i] - 1, conn: ps[11 + i] })
+                    return { el: ps[2], name: ps[2] + ps[0], pos: [ps[6] * 1, ps[7] * 1, ps[8] * 1], ccl: ccl }
+                })
+
+            //Get lines and strs
+            var lines = []
+            var strs = []
+            var angles = []
+            logTag.innerHTML = ''
+            list.forEach((x, i) => {
+                if (x.ccl.length > 1) {
+                    for (var i = 0; i < x.ccl.length; i++) {
+                        for (var j = i + 1; j < x.ccl.length; j++) {
+                            var a = list[x.ccl[i].idx]
+                            var b = list[x.ccl[j].idx]
+
+                            var va = sub(a.pos, x.pos)
+                            var vb = sub(b.pos, x.pos)
+
+                            var theta = Math.acos(dot(va, vb) / (len(va) * len(vb))) * 180 / Math.PI
+                            theta = round(theta)
+                            logTag.innerHTML += a.name + ' , ' + x.name + ' , ' + b.name + ' = ' + theta + '\n'
+                        }
+                    }
+                }
+
+                strs.push([x.pos, x.name, '15px Arial'])
+                x.ccl.forEach(y => {
+                    lines.push([x.pos, list[y.idx].pos])
+                    var mid = div(add(x.pos, list[y.idx].pos), 2)
+                    strs.push([mid, round(len(sub(x.pos, list[y.idx].pos))), '10px Arial'])
+                })
+            })
+
+            //Set center of model
+            list.forEach(x => ceter = add(center, x))
+            center = div(center, list.length)
+
+            graph.lines = lines
+            graph.strs = strs
+        }
+
+        start(file_data.innerText
+            .split('\n')
+            .map(x => x.trim())
+            .reduce((p, c) => p + c, ''))
+    </script>
+</body>
+
+</html>

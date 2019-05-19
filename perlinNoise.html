@@ -1,0 +1,73 @@
+<html>
+
+<head>
+    <script src="./vecalc.js"></script>
+    <script src="./3dlib.js"></script>
+    <script src="./graph.js"></script>
+    <script src="./gif.js"></script>
+</head>
+
+<body>
+    <canvas id="cnv" width="640" height="480"></canvas>
+    <script>
+        const aVector = (n, a) => Array.from({ length: n }, () => a)
+
+        // n = Length of vector
+        // a = Maximum size of eldment size
+        const getRandomVector = (n, a) => {
+            console.log('called')
+            return Array.from({ length: n }, () => (Math.random(n) - .5) * a * 2)
+        }
+
+        const getNoizeFunction = (sin, cos) => {
+            return function (x) {
+                var y = 0
+                for (var i = 0; i < sin.length; i++) {
+                    y += Math.sin(x * (i + 1)) * sin[i]
+                    y += Math.cos(x * (i + 1)) * cos[i]
+                }
+                return y
+            }
+        }
+
+        const get1DNoiseFunction = (n, a) => {
+            const sinC = getRandomVector(n, a)
+            const cosC = getRandomVector(n, a)
+            return getNoizeFunction(sinC, cosC)
+        }
+
+        const get2DFunction = (n, a) => {
+            const sinC = aVector(n, 0).map(() => get1DNoiseFunction(n, a))
+            const cosC = aVector(n, 0).map(() => get1DNoiseFunction(n, a))
+            return function (y) {
+                const sinv = sinC.map(f => f(y))
+                const cosv = cosC.map(f => f(y))
+                return getNoizeFunction(sinv, cosv)
+            }
+        }
+
+
+        const n = 20
+        const a = 1
+
+        const noize2D = get2DFunction(n, a)
+
+        var graph = getGraph2D(cnv)
+        var y = 0
+        setInterval(() => {
+            graph.clear()
+            var line = []
+            const noize1D = noize2D(y)
+            for (var t = 0; t <= Math.PI * 2 + .1; t += .01) {
+                var r = (noize1D(t) + n * a * 4) / (n * a)
+                line.push([r * Math.cos(t), r * Math.sin(t)])
+            }
+            graph.lines = [line]
+            graph.render()
+            y += .001
+        }, 10);
+
+    </script>
+</body>
+
+</html>

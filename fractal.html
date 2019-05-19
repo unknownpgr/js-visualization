@@ -1,0 +1,66 @@
+<html>
+<haed>
+    <script src="./vecalc.js"></script>
+    <script src="./3dlib.js"></script>
+    <script src="./graph.js"></script>
+</haed>
+
+<body style="background:#aaa">
+    <div id="log"></div>
+    <canvas id="cnv" width="640" height="480" style="background:#fff"></canvas>
+    <script>
+        function getFracal(initial, length) {
+            return [initial, length]
+        }
+
+        function getFractalFunction(rule, r) {
+            return function (arr) {
+                var newArr = []
+                arr[0].forEach(element => {
+                    rule.forEach(r => {
+                        newArr.push((element + r) % 360)
+                    })
+                });
+                arr[0] = newArr
+                arr[1] /= r
+                return arr
+            }
+        }
+
+        function getLine(arr, initial = [0, 0]) {
+            var line = []
+            var x = initial[0]
+            var y = initial[1]
+            line.push([x, y])
+            for (var i = 0; i < arr[0].length; i++) {
+                var nx = x + Math.cos(arr[0][i] * Math.PI / 180) * arr[1]
+                var ny = y + Math.sin(arr[0][i] * Math.PI / 180) * arr[1]
+                line.push([nx, ny])
+                x = nx
+                y = ny
+            }
+            return line
+        }
+
+        var graph = getGraph2D(cnv)
+        var angle = 0
+        setInterval(() => {
+            log.innerHTML = 'Angle : ' + Math.floor(angle)
+            graph.clear()
+            angle_ = angle
+            var r = Math.sqrt(Math.pow(1 + 2 * Math.cos(angle_ * Math.PI / 180), 2) + 1.1)
+            var fractalFunction = getFractalFunction([angle_, -angle_, 0], r)
+            const size = 18
+            var arr = getFracal([0], size)
+            for (var i = 0; i < 9; i++) {
+                arr = fractalFunction(arr)
+            }
+            var line = getLine(arr, [-size / 2 + .5, -size / 3])
+            graph.lines = [line]
+            graph.render()
+            angle += .1
+        }, 10);
+    </script>
+</body>
+
+</html>
