@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <canvas id="cnv" width="1500" height="500"></canvas>
+    <canvas id="cnv" width="1500" height="1000"></canvas>
     <div id="log"></div>
     <script>
         function project(eye, points) {
@@ -54,19 +54,28 @@
             ]
         }
 
-        var eye = [-16, 0, 6]
+        var eye = [-16, 0, 8]
         var t = 0
         var graph = getGraph2D(cnv)
 
         setInterval(() => {
             graph.clear()
-            var lines = genCubeLine(genCube([0, 0, 1], [Math.sin(t / 100), Math.cos(t / 100), Math.sin(t / 511)])).map(line => project(eye, line))
+            var cubePos = [4 + Math.sin(t / 321), 0 + Math.cos(t / 123), Math.sin(t / 211) + 1.5]
+            var cubeDir = mul(unt([Math.sin(t / 100), Math.cos(t / 100), Math.sin(t / 511)]), 1)
+            var lines = genCubeLine(genCube(cubePos, cubeDir))
+                .map(line => project(eye, line))
+                .map(line => {
+                    for (var i = 0; i < line.length; i += 2) {
+                        line[i][2] = (line[i][2] + line[i + 1][2]) / 2
+                    }
+                    return line
+                })
             var eyeLine1 = [[0, 0, 0], [eye[0], eye[1], 0]]
             var eyeLine2 = [[0, 0, 0], [0, eye[2], 0]]
             lines.push(eyeLine1)
             lines.push(eyeLine2)
             graph.lines = lines
-            graph.render()
+            graph.renderWidth()
             t++;
         }, 10);
 

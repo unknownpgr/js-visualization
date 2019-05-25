@@ -37,6 +37,17 @@ function getGraph2D(canvas, scale = 32) {
             })
             this.ctx.stroke()
         },
+        renderWidth: function () {
+            this.lines.forEach(line => {
+                cvt = line.map(x => this.cvt(x))
+                for (var i = 0; i < cvt.length - 1; i++) {
+                    this.ctx.beginPath()
+                    this.ctx.lineWidth = cvt[i][2]
+                    if (cvt[i] && cvt[i + 1]) drawLine(this.ctx, cvt[i], cvt[i + 1])
+                    this.ctx.stroke()
+                }
+            })
+        },
         clear: function () { this.ctx.clearRect(0, 0, this.cnv.width, this.cnv.height) }
     }
 }
