@@ -1,0 +1,76 @@
+<html>
+
+<head>
+    <script src="./vecalc.js"></script>
+    <script src="./graph.js"></script>
+</head>
+
+<body>
+    <canvas id="cnv" width="1500" height="500"></canvas>
+    <div id="log"></div>
+    <script>
+        function project(eye, points) {
+            return points.map(p => {
+                var d = sub(p, eye)
+                var r = add(eye, mul(d, -eye[2] / d[2]))
+                r[2] = (len2(sub(r, eye)) / len2(d)) / 16
+                return r
+            })
+        }
+
+        function genCube(pos, dirX) {
+            var l = len(dirX)
+            var dirY = mul(unt(crs(dirX, [0, 0, 1])), l)
+            var dirZ = mul(unt(crs(dirX, dirY)), l)
+            //xyz
+            //xz-y
+            //z-(x+y)
+            //yz-x
+
+            //xy-z
+            //x-(y+z)
+            //-(x+y+z)
+            //y-(z+x)
+            return [
+                add(pos, add(dirX, add(dirZ, dirY))),
+                add(pos, add(dirX, sub(dirZ, dirY))),
+                add(pos, sub(dirZ, add(dirY, dirX))),
+                add(pos, add(dirY, sub(dirZ, dirX))),
+
+                add(pos, add(dirX, sub(dirY, dirZ))),
+                add(pos, sub(dirX, add(dirY, dirZ))),
+                sub(pos, add(dirX, add(dirZ, dirY))),
+                add(pos, sub(dirY, add(dirZ, dirX))),
+            ]
+        }
+
+        function genCubeLine(cubePoints) {
+            var c = cubePoints
+            return [
+                [c[0], c[1], c[2], c[6]],
+                [c[2], c[3], c[0], c[4]],
+                [c[1], c[5], c[6], c[7]],
+                [c[3], c[7], c[4], c[5]]
+            ]
+        }
+
+        var eye = [-16, 0, 6]
+        var t = 0
+        var graph = getGraph2D(cnv)
+
+        setInterval(() => {
+            graph.clear()
+            var lines = genCubeLine(genCube([0, 0, 1], [Math.sin(t / 100), Math.cos(t / 100), Math.sin(t / 511)])).map(line => project(eye, line))
+            var eyeLine1 = [[0, 0, 0], [eye[0], eye[1], 0]]
+            var eyeLine2 = [[0, 0, 0], [0, eye[2], 0]]
+            lines.push(eyeLine1)
+            lines.push(eyeLine2)
+            graph.lines = lines
+            graph.render()
+            t++;
+        }, 10);
+
+    </script>
+</body>
+
+</html>
