@@ -38,12 +38,23 @@ function getGraph2D(canvas, scale = 32) {
             this.ctx.stroke()
         },
         renderWidth: function () {
+            this.ctx.lineCap = 'round'
             this.lines.forEach(line => {
                 cvt = line.map(x => this.cvt(x))
                 for (var i = 0; i < cvt.length - 1; i++) {
+                    var a = [cvt[i][0], cvt[i][1], 0]
+                    var b = [cvt[i + 1][0], cvt[i + 1][1], 0]
+                    var r = unt(crs(sub(a, b), [0, 0, 1]))
+
+                    var s1 = add(cvt[i], mul(r, cvt[i][2]))
+                    var e1 = add(cvt[i + 1], mul(r, cvt[i + 1][2]))
+                    var e2 = sub(cvt[i + 1], mul(r, cvt[i + 1][2]))
+                    var s2 = sub(cvt[i], mul(r, cvt[i][2]))
                     this.ctx.beginPath()
-                    this.ctx.lineWidth = cvt[i][2]
-                    if (cvt[i] && cvt[i + 1]) drawLine(this.ctx, cvt[i], cvt[i + 1])
+                    drawLine(this.ctx, s1, e1)
+                    drawLine(this.ctx, e1, e2)
+                    drawLine(this.ctx, e2, s2)
+                    drawLine(this.ctx, s2, s1)
                     this.ctx.stroke()
                 }
             })

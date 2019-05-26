@@ -13,24 +13,15 @@
             return points.map(p => {
                 var d = sub(p, eye)
                 var r = add(eye, mul(d, -eye[2] / d[2]))
-                r[2] = (len2(sub(r, eye)) / len2(d)) / 16
+                r[2] = Math.sqrt(len2(sub(r, eye)) / len2(d))
                 return r
             })
         }
 
-        function genCube(pos, dirX) {
+        function genCubePoints(pos, dirX) {
             var l = len(dirX)
             var dirY = mul(unt(crs(dirX, [0, 0, 1])), l)
             var dirZ = mul(unt(crs(dirX, dirY)), l)
-            //xyz
-            //xz-y
-            //z-(x+y)
-            //yz-x
-
-            //xy-z
-            //x-(y+z)
-            //-(x+y+z)
-            //y-(z+x)
             return [
                 add(pos, add(dirX, add(dirZ, dirY))),
                 add(pos, add(dirX, sub(dirZ, dirY))),
@@ -54,27 +45,58 @@
             ]
         }
 
-        var eye = [-16, 0, 8]
+
+        var xShift = -10
+        var yShift = -10
+        var eye = [-16 + xShift, 0 + yShift, 6]
         var t = 0
         var graph = getGraph2D(cnv)
 
+
+        var dots = []
+        var gridLines = []
+        for (var i = 0; i < 10; i++) {
+            dots.push([xShift + i, yShift + 0, 0])
+            dots.push([xShift + i, yShift + 10, -10])
+        }
+        for (var i = 0; i < 10; i++) {
+            dots.push([xShift, yShift + i, -i])
+            dots.push([xShift + 10, yShift + i, -i])
+        }
+        dots = project(eye, dots)
+            .map(dot => {
+                dot[2] /= 32
+                return dot
+            })
+        for (var i = 0; i < dots.length; i += 2) {
+            gridLines.push([dots[i], dots[i + 1]])
+        }
+
         setInterval(() => {
             graph.clear()
-            var cubePos = [4 + Math.sin(t / 321), 0 + Math.cos(t / 123), Math.sin(t / 211) + 1.5]
-            var cubeDir = mul(unt([Math.sin(t / 100), Math.cos(t / 100), Math.sin(t / 511)]), 1)
-            var lines = genCubeLine(genCube(cubePos, cubeDir))
+
+            var k = Math.sin(t / 100) + 1
+            console.log(k)
+            var x = (Math.abs(k) + Math.abs(k - 1) - 1) * 4
+            var z = (Math.abs(k - 1) + Math.abs(k - 2) - 1) * 1
+            var y = z
+
+            // Set cube position and direction
+            var cubePos = [x + xShift, y + yShift, z]
+            var cubeDir = [0, 1, 1]//mul(unt([Math.sin(-t / 100), Math.cos(-t / 100), Math.sin(-t / 511)]), 1)
+            // Generate cube line and project
+            var lines = genCubeLine(genCubePoints(cubePos, cubeDir))
                 .map(line => project(eye, line))
-                .map(line => {
-                    for (var i = 0; i < line.length; i += 2) {
-                        line[i][2] = (line[i][2] + line[i + 1][2]) / 2
-                    }
-                    return line
-                })
-            var eyeLine1 = [[0, 0, 0], [eye[0], eye[1], 0]]
-            var eyeLine2 = [[0, 0, 0], [0, eye[2], 0]]
-            lines.push(eyeLine1)
-            lines.push(eyeLine2)
-            graph.lines = lines
+                .map(line => line.map(pos => {
+                    pos[2] /= 32
+                    return pos
+                }))
+            var eyeLine1 = [[0 + xShift, 0 + yShift, 1 / 32], [eye[0] + xShift, 0 + yShift, 1 / 32]]
+            var eyeLine2 = [[0 + xShift, 0 + yShift, 1 / 32], [0 + xShift, eye[2] + yShift, 1 / 32]]
+
+            // lines.push(eyeLine1)
+            // lines.push(eyeLine2)
+            graph.lines = lines.concat(gridLines)
             graph.renderWidth()
             t++;
         }, 10);
