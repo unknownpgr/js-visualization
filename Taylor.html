@@ -1,0 +1,77 @@
+<html>
+
+<head>
+    <script src="./vecalc.js"></script>
+    <script src="./graph.js"></script>
+</head>
+
+<body>
+    <div>
+        <input value="0" type="range" max="20" onmousemove="changeEvent(event)" onchange="changeEvent(event)"
+            style="width:400px" id="rangeInput">
+    </div>
+    <div id="nDiv"></div>
+    <canvas id="cnv" width="1000" height="700"></canvas>
+    <script>
+        var graph = getGraph2D(cnv)
+
+        function factorial(n) {
+            var value = 1
+            for (var i = 1; i <= n; i++) {
+                value *= i
+            }
+            return value
+        }
+
+        function cosineTaylor(x, n) {
+            var value = 0
+            for (var i = 0; i <= n; i++) {
+                value += Math.pow(-1, i) * Math.pow(x, 2 * i) / factorial(2 * i)
+            }
+            return value
+        }
+
+        function sineTaylor(x, n) {
+            var value = 0
+            for (var i = 0; i <= n; i++) {
+                value += Math.pow(-1, i) * Math.pow(x, 2 * i + 1) / factorial(2 * i + 1)
+            }
+            return value
+        }
+
+        function changeEvent(event) {
+            graph.clear()
+            var n = event.target.value
+            nDiv.innerText = '테일러 급수 ' + n + '차 전개'
+
+            // Draw sine function graph
+            var line = []
+            for (var i = -10; i < 10; i += 0.1) {
+                var value = Math.sin(i)
+                line.push([i, value])
+            }
+            graph.lines = [line]
+            graph.ctx.strokeStyle = '#ff0000'
+            graph.render()
+
+            // Draw taylor series graph
+            line = []
+            for (var i = -10; i < 10; i += 0.1) {
+                var value = sineTaylor(i, n)
+                line.push([i, value])
+            }
+            graph.lines = [line]
+            graph.lines.push([[-10, 0], [10, 0]])
+            graph.lines.push([[0, -10], [0, 10]])
+            graph.ctx.strokeStyle = '#000000'
+            graph.render()
+        }
+
+        setTimeout(() => {
+            var data = { target: rangeInput }
+            changeEvent(data)
+        }, 0)
+    </script>
+</body>
+
+</html>

@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <canvas id="cnv" width="1500" height="1000"></canvas>
+    <canvas id="cnv" width="1800" height="1000"></canvas>
     <div id="log"></div>
     <script>
         function project(eye, points) {
@@ -74,7 +74,6 @@
 
         setInterval(() => {
             graph.clear()
-
             var k = Math.sin(t / 100) + 1
             console.log(k)
             var x = (Math.abs(k) + Math.abs(k - 1) - 1) * 4
