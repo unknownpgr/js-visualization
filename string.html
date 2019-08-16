@@ -2,12 +2,91 @@
 
 <head>
     <title>String</title>
-    <script src="./"></script>
+    <script src="./vecalc.js"></script>
+    <script src="3dlib.js"></script>
+    <script src="./graph.js"></script>
 </head>
 
-<body>
-    <canvas id="cnv"></canvas>
-    <script></script>
+<body style="background: #888">
+    <div style="background: #fff"> <canvas id="cnv" width="500" height="500"></canvas></div>
+    <script>
+        //All the unit is meter, second and gram.
+        var xs = []
+        var vs = []
+        var as = []
+
+        function addParticle(x) {
+            xs.push(x)
+            vs.push([0, 0])
+            as.push([0, 0])
+        }
+
+        //Update position from velocity and acceleration
+        function updatePosition(dt) {
+            as.map((a, i) => {
+                vs[i] = add(vs[i], mul(a, dt))
+                xs[i] = add(xs[i], mul(vs[i], dt))
+            })
+        }
+
+        function stringMove(k, dt) {
+            xs.map((x, i) => {
+                a = [0, 0]
+                if (xs[i - 1]) {
+                    a = add(a, mul(sub(xs[i - 1], x), k))
+                }
+                if (xs[i + 1]) {
+                    a = add(a, mul(sub(xs[i + 1], x), k))
+                }
+
+                // Gravity
+                a = add(a, mul([0, -9.8], dt))
+
+                // Drag
+                a = add(a, mul(vs[i], - dt * 0.5))
+                as[i] = a
+            })
+            updatePosition(dt)
+        }
+
+        //Generate graph instance
+        const graph = getGraph2D(cnv)
+        function draw() {
+            graph.clear()
+            graph.lines = [xs]
+            graph.render()
+        }
+
+        var number = 100f // Number of particle
+        var length = 15 // Length of string
+
+        // Generate paritcle
+        for (var i = 0; i < number; i++) addParticle([i * length / number - length / 2, 0])
+
+        var t = 0       //Current time
+        var dt = 0.005   //Delta time
+        var k = 200     //Spring constant
+        setInterval(() => {
+            s = [-length / 2, Math.sin(Math.PI * 2 * t / 4)]
+            s = [-length / 2, 1 / (1 + Math.pow((t - 10) * 3, 2))]
+
+            // Fix position
+            xs[0] = s
+            xs[number - 1][0] = length / 2
+            // xs[number - 1][1] = 0
+
+            // Apply diffential equation
+            stringMove(k, dt)
+
+            xs[0] = s
+            xs[number - 1][0] = length / 2
+            xs[number - 1][1] = 0
+
+            //Render
+            draw()
+            t += dt
+        }, 1);
+    </script>
 </body>
 
 </html>
