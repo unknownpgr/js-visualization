@@ -1,0 +1,175 @@
+<html>
+
+<head>
+    <title> space wrap </title>
+    <style>
+        #consoleFrame {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #equationFrame {
+            margin: 8px;
+            padding: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
+            border: solid 1px #aaa;
+        }
+
+        .label {
+            vertical-align: top;
+        }
+
+        #eqTag {
+            margin-top: 12px;
+            border: solid 1px #aaa;
+            resize: none;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div> Write function about x and y. it should return newX and newY<br>
+        JavaScript grammar is applied.<br>
+        Watch out divide by zero.
+    </div>
+
+    <div></br></div>
+    <div id="consoleFrame">
+        <div id="equationFrame">
+            <div>function transfrom(x,y){</div>
+            <div>&emsp;var newX = 0, newY = 0;</div>
+            <span>&emsp;</span><textarea name="" id="eqTag" cols="30" rows="5"></textarea>
+            <div>&emsp;return [newX, newY]</div>
+            <div>}</div>
+        </div>
+        <div id="buttonFrame" onclick="apply(event)">
+            <button>Apply</button>
+        </div>
+        <div>
+            newX = 1+x*x-y*y
+            newY = 2*x*y
+        </div>
+    </div>
+
+    <canvas width="600" height="600" id="cnv"></canvas>
+    <script>
+        const sin = Math.sin
+        const cos = Math.cos
+        const tan = Math.tan
+
+        const log = Math.log
+        const ln = Math.log
+        const log2 = Math.log2
+        const log10 = Math.log10
+
+        const abs = Math.abs()
+    </script>
+    <script>
+        let gridLinesNumber = 20
+        let unitLength = 0.04
+        let scale = 32
+
+        var cx = cnv.width / 2
+        var cy = cnv.height / 2
+
+        var ctx = cnv.getContext('2d')
+
+        function getGrid(linesNumber) {
+            var grids = [];
+            for (var i = -linesNumber / 2; i <= linesNumber / 2; i += 1) {
+                var gridLineX = []
+                var gridLineY = []
+                for (var j = -linesNumber / 2; j < linesNumber / 2; j += unitLength) {
+                    gridLineX.push([i, j])
+                    gridLineY.push([j, i])
+                }
+                grids.push(gridLineX);
+                grids.push(gridLineY);
+            }
+            return grids;
+        }
+
+        function getCircle(r, x, y) {
+            var circle = []
+            for (var i = 0; i < Math.PI * 2 + unitLength; i += unitLength) {
+                circle.push([Math.sin(i) * r + y, Math.cos(i) * r + x])
+            }
+            return circle;
+        }
+
+        function convertTransform(functionString) {
+            var script = "function t(x, y) {"
+            script += functionString;
+            script += "return [x, y]}"
+            functionScript.innerHTML = script;
+        }
+
+        function linearInterpolation(s, e, r) {
+            return s.map((curve, i) =>
+                curve.map((dot, j) =>
+                    dot.map((x, k) =>
+                        e[i][j][k] * r + x * (1 - r)
+                    )
+                )
+            )
+        }
+
+        function draw(lines) {
+            ctx.clearRect(0, 0, 9999, 9999)
+            ctx.beginPath()
+            for (var i = 0; i < lines.length; i++) {
+                ctx.moveTo(cx + lines[i][0][1] * scale, cy - lines[i][0][0] * scale)
+                for (var j = 0; j < lines[i].length; j++) {
+                    ctx.lineTo(cx + lines[i][j][1] * scale, cy - lines[i][j][0] * scale)
+                }
+            }
+            ctx.stroke()
+        }
+
+        var curves = []
+        var converted = []
+
+        getGrid(gridLinesNumber).forEach(line => curves.push(line))
+        curves.push(getCircle(5, 3, 4))
+        curves.push(getCircle(4, 5, 3))
+        curves.push(getCircle(8, 4, 4))
+
+        eqTag.value = "var t = x * x + y * y\nt += 0.000001\nnewX = x * 10 / t\nnewY = y * 10 / t"
+        let t = () => { };
+        function apply() {
+            var newScript = "t = ((d) => {var x=d[1],y=d[0],newX=0,newY=0;"
+            newScript += eqTag.value;
+            newScript += ";return [newY, newX]})"
+            eval(newScript)
+            converted = [];
+            curves.forEach(curve => converted.push(curve.map(dot => {
+                c = t(dot)
+                /*
+
+                Error handling
+
+                */
+                return c
+            })))
+        }
+
+        apply()
+
+        var i = 0;
+        setInterval(() => {
+            var range;
+            if (i < 1) range = 0;
+            else if (i < 2) range = i - 1
+            else if (i < 3) range = 1
+            else if (i < 4) range = 4 - i
+            else i = 0;
+            var d = linearInterpolation(curves, converted, range)
+            draw(d)
+            i += 0.01;
+        }, 1)
+    </script>
+</body>
+
+</html>
