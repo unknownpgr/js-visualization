@@ -8,7 +8,7 @@
 </head>
 
 <body style="background: #888">
-    <div style="background: #fff"> <canvas id="cnv" width="500" height="500"></canvas></div>
+    <div style="background: #fff"> <canvas id="cnv" width="1000" height="500"></canvas></div>
     <script>
         //All the unit is meter, second and gram.
         var xs = []
@@ -43,7 +43,8 @@
                 a = add(a, mul([0, -9.8], dt))
 
                 // Drag
-                a = add(a, mul(vs[i], - dt * 0.5))
+                a = add(a, mul(vs[i], - dt * 8))
+
                 as[i] = a
             })
             updatePosition(dt)
@@ -57,35 +58,38 @@
             graph.render()
         }
 
-        var number = 100f // Number of particle
-        var length = 15 // Length of string
+        var number = 100 // Number of particle
+        var length = 20 // Length of string
 
         // Generate paritcle
         for (var i = 0; i < number; i++) addParticle([i * length / number - length / 2, 0])
 
         var t = 0       //Current time
-        var dt = 0.005   //Delta time
-        var k = 200     //Spring constant
+        var dt = 0.01   //Delta time
+        var k = 400     //Spring constant
         setInterval(() => {
-            s = [-length / 2, Math.sin(Math.PI * 2 * t / 4)]
-            s = [-length / 2, 1 / (1 + Math.pow((t - 10) * 3, 2))]
+            for (let _ = 0; _ < 3; _++) {
+                // s = [-length / 2, 0]
+                // s = [-length / 2, Math.sin(Math.PI * 2 * t * 1.2 / 6)]
+                s = [-length / 2, 1 / (1 + Math.pow((t - 15) * 3, 2))]
 
-            // Fix position
-            xs[0] = s
-            xs[number - 1][0] = length / 2
-            // xs[number - 1][1] = 0
+                // Fix position
+                xs[0] = s
+                xs[number - 1][0] = length / 2
+                // xs[number - 1][1] = 0
 
-            // Apply diffential equation
-            stringMove(k, dt)
+                // Apply diffential equation
+                stringMove(k, dt)
 
-            xs[0] = s
-            xs[number - 1][0] = length / 2
-            xs[number - 1][1] = 0
+                xs[0] = s
+                xs[number - 1][0] = length / 2
+                xs[number - 1][1] = 0
 
-            //Render
-            draw()
-            t += dt
-        }, 1);
+                //Render
+                draw()
+                t += dt
+            }
+        }, 0);
     </script>
 </body>
 
