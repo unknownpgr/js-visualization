@@ -8,8 +8,15 @@
 </head>
 
 <body style="background: #888">
-    <div style="background: #fff"> <canvas id="cnv" width="1000" height="500"></canvas></div>
+    <div style="background: #fff">
+        <canvas id="cnv" width="1000" height="500" onmousemove="onMouseMove(event)"></canvas>
+    </div>
     <script>
+        let y0 = 0;
+        function onMouseMove(event) {
+            y0 = -(event.clientY - event.target.clientHeight / 2) / 32;
+        }
+
         //All the unit is meter, second and gram.
         var xs = []
         var vs = []
@@ -67,11 +74,15 @@
         var t = 0       //Current time
         var dt = 0.01   //Delta time
         var k = 400     //Spring constant
+        let y0_ = 0;
+        let k2 = dt * 0.5;
         setInterval(() => {
             for (let _ = 0; _ < 3; _++) {
                 // s = [-length / 2, 0]
                 // s = [-length / 2, Math.sin(Math.PI * 2 * t * 1.2 / 6)]
-                s = [-length / 2, 1 / (1 + Math.pow((t - 15) * 3, 2))]
+                // s = [-length / 2, 1 / (1 + Math.pow((t - 15) * 3, 2))]
+                y0_ = y0_ * (1 - k2) + y0 * k2
+                s = [-length / 2, y0_]
 
                 // Fix position
                 xs[0] = s
