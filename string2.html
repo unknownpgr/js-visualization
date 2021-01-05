@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>String simulation</title>
+  <style>
+    #cnv {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="cnv"></canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.1/math.js"></script>
+  <script>
+    cnv.width = cnv.clientWidth;
+    cnv.height = cnv.clientHeight
+    const ctx = cnv.getContext('2d')
+
+    function draw(S) {
+      ctx.clearRect(0, 0, cnv.width, cnv.height)
+      let N = math.size(S)[0] / 2
+      ctx.beginPath()
+      ctx.moveTo(S[0][0], S[0][1])
+      for (let i = 1; i < N; i++) {
+        ctx.lineTo(S[i][0], S[i][1])
+      }
+      ctx.stroke()
+    }
+
+
+    /**
+     * 어떤 n개의 입자들로 이루어진 끈을 상상하자. 차원은 2차원든 3차원이든 무관하다.
+     * 이때, 끈의 중간에 있는 어떤 i번째 입자의 위치를 x[i]라 하자.
+     * 그러면 이 입자가 받는 힘은 f(|x[i+1]-x[i]|)*norm(x[i+1]-x[i])+f(|x[i-1]-x[i]|)*norm(x[i-1]-x[i])이 된다.
+     * 단 norm은 어떤 벡터 방향의 단위벡터를 반환하는 함수이며, f(x)는 끈의 특성에 따라 결정되는 스칼라 함수다.
+     * 그러므로 한 입자에 대한 운동 방정식은 d^2x[i]/dt^2 = F(x[i-1],x[i],x[i+1]) 꼴의 미분방정식이 된다. 이것은 일반적으로 system of nonlinear equations이다.
+     *
+     * 이는 2계 미분방정식이므로 다음과 같은 형태로 치환할 수 있다.
+     * dx[i]/dt = v[i]
+     * dv[i]/dt = F(x[i-1],x[i],x[i+1])
+     *
+     * 이는 2n개의 변수로 이루어진 1계 미분방정식이 된다.
+     * 정리하면, 입자의 좌표를 m이라 할 때, 2n by m 행렬 S=[x[0],x[1],...x[n-1],v[0],v[1],...,v[n-1]]이 시스템의 상태를 결정한다.
+     * 이 시스템을 S에 대해 표현하면 dS/dt = G(S)꼴로 나타난다.
+     * 이제 ODE를 푸는 방법을 적용하면 시스템을 쉽게 해결할 수 있다.
+     * f에 따라 시스템이 ill-conditioned일 수 있으므로 explicit Euler method를 사용하면 좋지 않다. 여러 메서드들을 사용해볼 수 있겠다.
+     */
+
+
+    function alloc(size) {
+      let m = []
+      if (size.length > 1) {
+        let n = size.shift()
+        for (let i = 0; i < n; i++) {
+          m[i] = alloc(size)
+        }
+        return m
+      } else {
+        return new Array(size[0]).fill(0)
+      }
+    }
+
+    function size(mat) {
+
+    }
+
+    function binaryOpTo(func) {
+      function op(a, b) {
+        let size = math.size(a)
+        if (size.length > 1) {
+          for (let i = 0; i < size[0]; i++) {
+            op(a[i], b[i])
+          }
+        } else {
+          for (let i = 0; i < size[0]; i++) {
+            a[i] = func(a[i], b[i])
+          }
+        }
+      }
+      return op
+    }
+
+    function scalarOpTo(func) {
+      function op(a, b) {
+        let size = math.size(a)
+        if (size.length > 1) {
+          for (let i = 0; i < size[0]; i++) {
+            op(a[i], b)
+          }
+        } else {
+          for (let i = 0; i < size[0]; i++) {
+            a[i] = func(a[i], b)
+          }
+        }
+      }
+      return op
+    }
+
+    const addTo = binaryOpTo((a, b) => a + b)
+    const subTo = binaryOpTo((a, b) => a - b)
+    const mulTo = binaryOpTo((a, b) => a * b)
+    const divTo = binaryOpTo((a, b) => a / b)
+    const assignTo = binaryOpTo((a, b) => b)
+
+    const sAddTo = scalarOpTo((a, b) => a + b)
+    const sSubTo = scalarOpTo((a, b) => a - b)
+    const sMulTo = scalarOpTo((a, b) => a * b)
+    const sDivTo = scalarOpTo((a, b) => a / b)
+
+
+    N = 50
+    S = alloc([N * 2, 2])
+
+    console.log(S)
+
+    // Set position
+    for (let i = 0; i < N; i++) {
+      S[i] = [i * 200 / N + 50, 50]
+    }
+    S[0][1] = 60
+
+    function f(x) {
+      return x
+    }
+
+    let l = [0, 0]
+    let r = [0, 0]
+    function F(xL, x, xR) {
+      assignTo(l, xL);
+      assignTo(r, xR);
+
+      subTo(l, x);
+      subTo(r, x);
+
+      sMulTo(l, f(math.norm(l)) / math.norm(l))
+      sMulTo(r, f(math.norm(r)) / math.norm(r))
+
+      addTo(l, r)
+
+      return l
+    }
+
+    function G(ds, S) {
+      // dx[i]/dt = v[i]
+      for (let i = 0; i < N; i++) {
+        assignTo(dS[i], S[i + N]);
+      }
+
+      // dv[i]/dt = F(x[i-1],x[i],x[i+1])
+      for (let i = 1; i < N - 1; i++) {
+        assignTo(dS[i + N], F(S[i - 1], S[i], S[i + 1]));
+      }
+    }
+
+    // function solveEularExplicit(S, G, dt) {
+    //   let dS = G(S)
+    //   sMulTo(dS, dt)
+    //   addTo(S, dS)
+    // }
+
+    // let Snext = alloc(math.size(S));
+    // let dScur = alloc(math.size(S));
+    // function solveEularImprove(S, G, dt) {
+    //   let dS = G(S)
+    //   assignTo(Snext, S)
+    //   assignTo(dScur, dS)
+    //   sMulTo(dS, dt)
+    //   addTo(Snext, dS)
+
+    //   let dSnew = G(Snext)
+    //   addTo(dScur, dSnew);
+    //   sDivTo(dScur, 2);
+    //   sMulTo(dScur, dt);
+    //   addTo(S, dScur);
+    // }
+
+    let dS = alloc(math.size(S));
+    let Snext = alloc(math.size(S));
+    let dSnext = alloc(math.size(S));
+    function solveEularPreCur(S, G, dt) {
+      // First guess of Snext
+      assignTo(Snext, S);
+      G(dS, S);
+      assignTo(dSnext, dS);
+      sMulTo(dS, dt);
+      addTo(Snext, dS);
+
+      for (let i = 0; i < 3; i++) {
+        // Iterative guess of dSnext
+        G(dS, Snext);
+        addTo(dSnext, dS);
+        sDivTo(dSnext, 2);
+
+        // Iterative guess of Snext
+        assignTo(Snext, S);
+        assignTo(dS, dSnext);
+        sMulTo(dS, dt);
+        addTo(Snext, dS);
+      }
+
+      assignTo(S, Snext)
+    }
+
+    const dt = 0.01;
+    const MULTIPLIER = 10;
+    setInterval(() => {
+      draw(S)
+      for (let i = 0; i < MULTIPLIER; i++) {
+        solveEularPreCur(S, G, dt)
+      }
+    }, 1);
+  </script>
+</body>
+
+</html>
