@@ -10,18 +10,18 @@
 - requires above modules
 ## Some examples
 
-### [diffEqRender](https://unknownpgr.github.io/visualizeJS/diffEqRender.html) / [multiParticle](https://unknownpgr.github.io/visualizeJS/multiParticle.html)
+### [diffEqRender](https://unknownpgr.github.io/js-visualization/diffEqRender.html) / [multiParticle](https://unknownpgr.github.io/js-visualization/multiParticle.html)
 
 ![image-20210105094334131](docs/imgs/image-20210105094334131.png)
 
-### [molRender](https://unknownpgr.github.io/visualizeJS/molRender.html)
+### [molRender](https://unknownpgr.github.io/js-visualization/molRender.html)
 
 ![image-20210105094403138](docs/imgs/image-20210105094403138.png)
 
-### [SpaceWrap](https://unknownpgr.github.io/visualizeJS/spaceWrap.html)
+### [SpaceWrap](https://unknownpgr.github.io/js-visualization/spaceWrap.html)
 
 ![image-20210105094159295](docs/imgs/image-20210105094159295.png)
 
-### [String](https://unknownpgr.github.io/visualizeJS/string.html)
+### [String](https://unknownpgr.github.io/js-visualization/string.html)
 
 ![image-20210105094121385](docs/imgs/image-20210105094121385.png)
